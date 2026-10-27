@@ -1,0 +1,74 @@
+<main class="page-shell">
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Customers Gestion</p>
+      <h1>Clientes</h1>
+      <p class="subtitle">Administra clientes y sus documentos desde un solo lugar.</p>
+    </div>
+    <div class="count-badge"><strong>{{ customers.length }}</strong><span>registrados</span></div>
+  </header>
+
+  <p *ngIf="message" class="notice success">{{ message }}</p>
+  <p *ngIf="error" class="notice error">{{ error }}</p>
+
+  <section class="workspace">
+    <form class="form-panel" [formGroup]="form" (ngSubmit)="save()">
+      <div class="panel-heading">
+        <div><p class="eyebrow">Ficha</p><h2>{{ editingId === null ? 'Nuevo cliente' : 'Editar cliente' }}</h2></div>
+        <button *ngIf="editingId !== null" type="button" class="text-button" (click)="resetForm()">Cancelar</button>
+      </div>
+
+      <label>Tipo de documento
+        <select formControlName="documentTypeId" [attr.aria-busy]="loadingDocumentTypes" [disabled]="loadingDocumentTypes">
+          <option [ngValue]="0">{{ loadingDocumentTypes ? 'Cargando tipos...' : 'Selecciona un tipo' }}</option>
+          <option *ngFor="let type of documentTypes" [ngValue]="type.id">{{ type.nameDocumentType }} ({{ type.prefix }})</option>
+        </select>
+      </label>
+      <label>Número de documento
+        <input type="number" formControlName="documentNumber" placeholder="Ej. 1002345678">
+      </label>
+      <div class="two-columns">
+        <label>Nombre<input type="text" formControlName="nameCustomer" placeholder="Nombre"></label>
+        <label>Apellido<input type="text" formControlName="lastnameCustomer" placeholder="Apellido"></label>
+      </div>
+      <div class="two-columns">
+        <label>Edad<input type="number" formControlName="ageCustomer" min="0" max="150"></label>
+        <label>Teléfono<input type="number" formControlName="phone" placeholder="Ej. 3001234567"></label>
+      </div>
+      <label>Dirección<input type="text" formControlName="address" placeholder="Dirección de residencia"></label>
+      <button class="primary-button" type="submit" [disabled]="saving">{{ saving ? 'Guardando...' : (editingId === null ? 'Crear cliente' : 'Guardar cambios') }}</button>
+    </form>
+
+    <section class="list-panel">
+      <div class="panel-heading"><div><p class="eyebrow">Directorio</p><h2>Clientes registrados</h2></div><span class="status-dot">Activo</span></div>
+      <p *ngIf="loading" class="empty-state">Cargando clientes...</p>
+      <p *ngIf="!loading && customers.length === 0" class="empty-state">Aún no hay clientes registrados.</p>
+      <div class="table-wrap" *ngIf="!loading && customers.length > 0">
+        <table>
+          <thead><tr><th>Cliente</th><th>Documento</th><th>Contacto</th><th></th></tr></thead>
+          <tbody>
+            <tr *ngFor="let customer of customers">
+              <td><strong>{{ customer.nameCustomer }} {{ customer.lastnameCustomer }}</strong><small>{{ customer.address }}</small></td>
+              <td><span class="document-chip">{{ customer.documentType?.prefix || 'DOC' }}</span> {{ customer.documentNumber }}</td>
+              <td>{{ customer.phone }}<small>{{ customer.ageCustomer }} años</small></td>
+              <td class="actions"><button type="button" title="Editar" (click)="edit(customer)">Editar</button><button type="button" title="Eliminar" (click)="remove(customer)">Eliminar</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </section>
+
+  <div class="modal-backdrop" *ngIf="pendingDelete" (click)="cancelDelete()">
+    <section class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="delete-title" (click)="$event.stopPropagation()">
+      <div class="modal-mark">!</div>
+      <p class="eyebrow">Confirmar acción</p>
+      <h2 id="delete-title">¿Eliminar este cliente?</h2>
+      <p class="modal-copy">Se eliminará a <strong>{{ pendingDelete.nameCustomer }} {{ pendingDelete.lastnameCustomer }}</strong>. Esta acción no se puede deshacer.</p>
+      <div class="modal-actions">
+        <button type="button" class="secondary-button" [disabled]="deletingId !== null" (click)="cancelDelete()">Cancelar</button>
+        <button type="button" class="danger-button" [disabled]="deletingId !== null" (click)="confirmDelete()">{{ deletingId !== null ? 'Eliminando...' : 'Eliminar cliente' }}</button>
+      </div>
+    </section>
+  </div>
+</main>
